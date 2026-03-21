@@ -3,9 +3,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { useTimer, CHEER_MESSAGES } from '@/context/timer-context'
+import { useTimer, CHEER_MESSAGES, ActiveTimer } from '@/context/timer-context'
 import { motion, AnimatePresence } from 'framer-motion'
 import GrowingTree from '@/components/ui/growing-tree'
+import { AmbientSoundPlayer, SOUND_OPTIONS, type SoundMode } from '@/lib/ambient-sound'
 
 type Tab = 'today' | 'add' | 'progress' | 'search' | 'focus' | 'reflect'
 
@@ -167,6 +168,392 @@ function CustomTimerModal({
   )
 }
 
+// ─── Immersive Focus Mode (Forest-inspired) ────────────────────────────────
+
+const PARTICLES = [
+  { left: '8%',  size: 5, dur: 8.0, delay: 0.0, dx: 20  },
+  { left: '20%', size: 3, dur: 7.0, delay: 1.5, dx: -15 },
+  { left: '35%', size: 6, dur: 9.0, delay: 0.5, dx: 25  },
+  { left: '50%', size: 4, dur: 7.5, delay: 2.0, dx: -20 },
+  { left: '65%', size: 5, dur: 8.5, delay: 1.0, dx: 18  },
+  { left: '78%', size: 3, dur: 6.5, delay: 3.0, dx: -10 },
+  { left: '88%', size: 6, dur: 8.0, delay: 1.8, dx: 22  },
+]
+
+function getSkyGradient(): string {
+  const h = new Date().getHours()
+  if (h >= 5  && h < 7)  return 'linear-gradient(180deg,#C17B3A 0%,#E8945A 40%,#87CEEB 100%)'
+  if (h >= 7  && h < 11) return 'linear-gradient(180deg,#4A9EE4 0%,#7DC4E4 50%,#A8D5A8 100%)'
+  if (h >= 11 && h < 16) return 'linear-gradient(180deg,#2980B9 0%,#4A9EE4 60%,#87CEEB 100%)'
+  if (h >= 16 && h < 19) return 'linear-gradient(180deg,#8B2500 0%,#D4521E 40%,#E8945A 100%)'
+  if (h >= 19 && h < 22) return 'linear-gradient(180deg,#1a1a2e 0%,#16213e 60%,#1a3a1a 100%)'
+  return 'linear-gradient(180deg,#0a0a1a 0%,#111128 60%,#0f1f0f 100%)'
+}
+
+function FocusImmersiveMode({
+  task, timer, duration,
+  onStart, onPause, onAbandon, onComplete, onDurationChange, onClose,
+}: {
+  task: Task
+  timer: ActiveTimer | undefined
+  duration: number
+  onStart: () => void
+  onPause: () => void
+  onAbandon: () => void
+  onComplete: (durationMins: number) => void
+  onDurationChange: (secs: number) => void
+  onClose: () => void
+}) {
+  const [showAbandonWarn, setShowAbandonWarn] = useState(false)
+  const [showBlurWarn, setShowBlurWarn]   = useState(false)
+  const [soundMode, setSoundMode]         = useState<SoundMode>(() =>
+    (typeof window !== 'undefined'
+      ? (localStorage.getItem('cm-ambient-sound') as SoundMode) || 'off'
+      : 'off')
+  )
+  const [showSoundMenu, setShowSoundMenu] = useState(false)
+  const soundRef = useRef<AmbientSoundPlayer | null>(null)
+
+  const timeLeft     = timer?.timeLeft  ?? duration
+  const totalTime    = timer?.totalTime ?? duration
+  const running      = timer?.running   ?? false
+  const completed    = timer?.completed ?? false
+  const dead         = timer?.dead      ?? false
+  const progress     = totalTime > 0 ? 1 - timeLeft / totalTime : 0
+  const mins         = Math.floor(timeLeft / 60)
+  const secs         = timeLeft % 60
+  const durationMins = Math.round(duration / 60)
+  const notStarted   = !running && progress === 0 && !completed && !dead
+
+  // Shame mechanic — fires when tab loses focus mid-session
+  useEffect(() => {
+    if (!running) return
+    const onBlur = () => setShowBlurWarn(true)
+    const onVis  = () => { if (document.hidden) setShowBlurWarn(true) }
+    window.addEventListener('blur', onBlur)
+    document.addEventListener('visibilitychange', onVis)
+    return () => {
+      window.removeEventListener('blur', onBlur)
+      document.removeEventListener('visibilitychange', onVis)
+    }
+  }, [running])
+
+  // Lock body scroll while open
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = '' }
+  }, [])
+
+  // Ambient sound player — create on mount, destroy on unmount
+  useEffect(() => {
+    soundRef.current = new AmbientSoundPlayer()
+    return () => { soundRef.current?.destroy() }
+  }, [])
+
+  // Start/stop sound when timer running state changes
+  useEffect(() => {
+    if (running && soundMode !== 'off') {
+      soundRef.current?.play(soundMode)
+    } else if (!running) {
+      soundRef.current?.stop()
+    }
+  }, [running, soundMode])
+
+  function handleSoundChange(mode: SoundMode) {
+    setSoundMode(mode)
+    localStorage.setItem('cm-ambient-sound', mode)
+    if (mode === 'off') {
+      soundRef.current?.stop()
+    } else if (running) {
+      soundRef.current?.play(mode)
+    }
+    setShowSoundMenu(false)
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.45 }}
+      className="fixed inset-0 z-[100] flex flex-col overflow-hidden"
+      style={{ background: getSkyGradient() }}
+    >
+      {/* Ambient floating pollen particles */}
+      {PARTICLES.map((p, i) => (
+        <motion.div
+          key={i}
+          className="absolute rounded-full pointer-events-none"
+          style={{ width: p.size, height: p.size, background: 'rgba(255,255,255,0.45)', left: p.left, bottom: -10 }}
+          animate={{ y: [0, -900], opacity: [0, 0.7, 0.7, 0], x: [0, p.dx] }}
+          transition={{ duration: p.dur, repeat: Infinity, delay: p.delay, ease: 'linear' }}
+        />
+      ))}
+
+      {/* Ground strip */}
+      <div
+        className="absolute bottom-0 left-0 right-0"
+        style={{ height: '14%', background: 'linear-gradient(180deg,#2d5a27 0%,#1a3a15 100%)' }}
+      />
+
+      {/* Top bar */}
+      <div className="relative z-10 flex items-center justify-between px-6 pt-12 pb-4">
+        <button
+          onClick={() => running ? setShowAbandonWarn(true) : onClose()}
+          className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold"
+          style={{ background: 'rgba(0,0,0,0.2)', color: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(8px)' }}
+        >
+          ← Back
+        </button>
+        <span className="text-xs font-bold uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.5)' }}>
+          Focus Session
+        </span>
+
+        {/* Sound toggle */}
+        <div className="relative">
+          <motion.button
+            whileTap={{ scale: 0.93 }}
+            onClick={() => setShowSoundMenu(s => !s)}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-semibold"
+            style={{ background: 'rgba(0,0,0,0.22)', color: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.12)' }}
+          >
+            <span>{SOUND_OPTIONS.find(o => o.mode === soundMode)?.icon ?? '🔇'}</span>
+            {soundMode !== 'off' && running && (
+              <motion.span
+                className="w-1.5 h-1.5 rounded-full bg-green-400"
+                animate={{ opacity: [1, 0.3, 1] }}
+                transition={{ duration: 1.4, repeat: Infinity }}
+              />
+            )}
+          </motion.button>
+
+          <AnimatePresence>
+            {showSoundMenu && (
+              <motion.div
+                initial={{ opacity: 0, y: -6, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -6, scale: 0.95 }}
+                transition={{ duration: 0.15 }}
+                className="absolute top-full right-0 mt-2 rounded-2xl p-1.5 flex flex-col gap-0.5 z-20"
+                style={{ background: 'rgba(10,16,10,0.94)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.1)', minWidth: '148px', boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}
+              >
+                {SOUND_OPTIONS.map(opt => (
+                  <button
+                    key={opt.mode}
+                    onClick={() => handleSoundChange(opt.mode)}
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm text-left transition-colors"
+                    style={{
+                      background: soundMode === opt.mode ? 'rgba(255,255,255,0.10)' : 'transparent',
+                      color: soundMode === opt.mode ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.72)',
+                    }}
+                  >
+                    <span style={{ fontSize: '15px' }}>{opt.icon}</span>
+                    <span className="font-medium">{opt.label}</span>
+                    {soundMode === opt.mode && (
+                      <span className="ml-auto text-green-400 text-xs">✓</span>
+                    )}
+                  </button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+
+      {/* Task title */}
+      <div className="relative z-10 px-8 text-center mt-1 mb-2">
+        <p className="text-base font-bold text-white leading-snug" style={{ textShadow: '0 2px 12px rgba(0,0,0,0.4)' }}>
+          {task.title}
+        </p>
+      </div>
+
+      {/* Tree + timer */}
+      <div className="relative z-10 flex flex-col items-center flex-1 justify-center gap-5 pb-4">
+        <motion.div
+          animate={completed ? { scale: [1, 1.08, 1] } : {}}
+          transition={{ duration: 2, repeat: Infinity }}
+        >
+          <GrowingTree
+            progress={completed ? 1 : dead ? 0 : progress}
+            size={220}
+            isDead={dead}
+            durationMinutes={durationMins}
+          />
+        </motion.div>
+
+        {/* Countdown */}
+        {!completed && !dead && (
+          <div className="text-center">
+            <motion.div
+              className="font-black tabular-nums"
+              style={{ fontSize: '4.5rem', letterSpacing: '-0.05em', color: 'white', textShadow: '0 4px 24px rgba(0,0,0,0.25)', lineHeight: 1 }}
+              animate={running ? { opacity: [1, 0.7, 1] } : {}}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              {String(mins).padStart(2, '0')}
+              <span style={{ opacity: 0.4 }}>:</span>
+              {String(secs).padStart(2, '0')}
+            </motion.div>
+            <p className="text-sm mt-2" style={{ color: 'rgba(255,255,255,0.55)' }}>
+              {running ? 'Stay focused...' : 'Ready when you are'}
+            </p>
+          </div>
+        )}
+
+        {/* Completed state */}
+        {completed && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center px-6">
+            <p className="text-2xl font-black text-white mb-1" style={{ textShadow: '0 2px 16px rgba(0,0,0,0.3)' }}>
+              {timer?.message?.bold || 'Tree grown!'}
+            </p>
+            <p className="text-sm mb-6" style={{ color: 'rgba(255,255,255,0.75)' }}>
+              {timer?.message?.sub || 'Plant it in your forest.'}
+            </p>
+            <motion.button
+              whileTap={{ scale: 0.97 }}
+              onClick={() => onComplete(durationMins)}
+              className="px-8 py-4 rounded-2xl text-base font-bold"
+              style={{ background: 'rgba(255,255,255,0.95)', color: '#16A34A' }}
+            >
+              🌳 Plant in forest
+            </motion.button>
+          </motion.div>
+        )}
+
+        {/* Dead state */}
+        {dead && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center px-6">
+            <p className="text-xl font-black text-white mb-2">Tree died</p>
+            <p className="text-sm mb-6" style={{ color: 'rgba(255,255,255,0.6)' }}>That is okay. Try again.</p>
+            <button
+              onClick={onClose}
+              className="px-6 py-3 rounded-2xl text-sm font-bold"
+              style={{ background: 'rgba(255,255,255,0.18)', color: 'white', border: '1px solid rgba(255,255,255,0.25)' }}
+            >
+              Back to tasks
+            </button>
+          </motion.div>
+        )}
+      </div>
+
+      {/* Bottom controls */}
+      {!completed && !dead && (
+        <div className="relative z-10 flex flex-col items-center gap-3 px-8 pb-14">
+
+          {/* Duration picker (only before starting) */}
+          {notStarted && (
+            <div className="flex gap-2 mb-1">
+              {PRESET_TIMERS.map(opt => (
+                <button
+                  key={opt}
+                  onClick={() => onDurationChange(opt * 60)}
+                  className="px-3 py-2 rounded-xl text-xs font-bold transition-all"
+                  style={{
+                    background: duration === opt * 60 ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.18)',
+                    color: duration === opt * 60 ? '#16A34A' : 'rgba(255,255,255,0.8)',
+                    border: duration === opt * 60 ? 'none' : '1px solid rgba(255,255,255,0.2)',
+                  }}
+                >
+                  {opt}m
+                </button>
+              ))}
+            </div>
+          )}
+
+          <motion.button
+            whileTap={{ scale: 0.97 }}
+            onClick={running ? onPause : onStart}
+            className="w-full max-w-xs py-4 rounded-2xl text-base font-bold"
+            style={{
+              background: running ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.95)',
+              color: running ? 'white' : '#16A34A',
+              border: '1px solid rgba(255,255,255,0.25)',
+              backdropFilter: 'blur(8px)',
+            }}
+          >
+            {running ? '⏸ Pause' : notStarted ? '🌱 Start growing' : '▶ Resume'}
+          </motion.button>
+
+          {running && (
+            <button
+              onClick={() => setShowAbandonWarn(true)}
+              className="text-xs px-4 py-1.5 rounded-full"
+              style={{ color: 'rgba(255,255,255,0.38)' }}
+            >
+              Give up (kills tree)
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Blur warning — tree needs you */}
+      <AnimatePresence>
+        {showBlurWarn && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="absolute inset-0 z-20 flex items-center justify-center px-6"
+            style={{ background: 'rgba(0,0,0,0.65)' }}
+          >
+            <motion.div
+              initial={{ scale: 0.88, y: 20 }} animate={{ scale: 1, y: 0 }}
+              className="rounded-3xl p-8 text-center w-full"
+              style={{ background: '#1E293B', border: '1px solid rgba(255,255,255,0.07)', maxWidth: 320 }}
+            >
+              <div className="text-4xl mb-3">🌳</div>
+              <p className="text-lg font-black text-white mb-2">Your tree needs you!</p>
+              <p className="text-sm mb-5" style={{ color: '#94A3B8' }}>Stay focused. Your tree is still growing.</p>
+              <button
+                onClick={() => setShowBlurWarn(false)}
+                className="w-full py-3 rounded-2xl text-sm font-bold text-white"
+                style={{ background: 'linear-gradient(135deg,#16A34A,#15803D)' }}
+              >
+                Continue growing
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Abandon warning */}
+      <AnimatePresence>
+        {showAbandonWarn && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="absolute inset-0 z-20 flex items-center justify-center px-6"
+            style={{ background: 'rgba(0,0,0,0.7)' }}
+          >
+            <motion.div
+              initial={{ scale: 0.88, y: 20 }} animate={{ scale: 1, y: 0 }}
+              className="rounded-3xl p-8 text-center w-full"
+              style={{ background: '#1E293B', border: '1px solid rgba(255,255,255,0.07)', maxWidth: 320 }}
+            >
+              <div className="text-4xl mb-3">💀</div>
+              <p className="text-lg font-black text-white mb-2">Your tree will die!</p>
+              <p className="text-sm mb-6" style={{ color: '#94A3B8' }}>Giving up will kill your tree. Are you sure?</p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowAbandonWarn(false)}
+                  className="flex-1 py-3 rounded-2xl text-sm font-bold"
+                  style={{ background: 'rgba(255,255,255,0.08)', color: 'white' }}
+                >
+                  Keep growing
+                </button>
+                <button
+                  onClick={() => { setShowAbandonWarn(false); onAbandon() }}
+                  className="flex-1 py-3 rounded-2xl text-sm font-bold text-white"
+                  style={{ background: '#EF4444' }}
+                >
+                  Give up
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  )
+}
+
 export default function TasksPage() {
   const router = useRouter()
   const {
@@ -203,6 +590,7 @@ export default function TasksPage() {
   const [reflectNote, setReflectNote] = useState('')
   const [reflectSaved, setReflectSaved] = useState(false)
   const [expandedSteps, setExpandedSteps] = useState<Set<string>>(new Set())
+  const [focusImmersiveTask, setFocusImmersiveTask] = useState<Task | null>(null)
 
   useEffect(() => { loadData() }, [])
 
@@ -271,7 +659,7 @@ export default function TasksPage() {
     setCheerMsg(cheerMessage)
 
     // Mark task as vanishing with animation
-    setVanishingTasks(prev => new Set([...prev, taskId]))
+    setVanishingTasks(prev => new Set(Array.from(prev).concat(taskId)))
 
     // After animation completes - update DB
     setTimeout(async () => {
@@ -315,7 +703,7 @@ No extra text. Just the JSON array.`
       const supabase = createClient()
       await supabase.from('tasks').update({ steps: stepsObj }).eq('id', task.id)
       setTasks(prev => prev.map(t => t.id === task.id ? { ...t, steps: stepsObj } : t))
-      setExpandedSteps(prev => new Set([...prev, task.id]))
+      setExpandedSteps(prev => new Set(Array.from(prev).concat(task.id)))
     } catch {}
     setBreakingDown(null)
   }
@@ -365,6 +753,40 @@ No extra text. Just the JSON array.`
           <CheerOverlay
             message={cheerMsg}
             onDone={() => setCheerMsg(null)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Immersive focus mode overlay */}
+      <AnimatePresence>
+        {focusImmersiveTask && (
+          <FocusImmersiveMode
+            task={focusImmersiveTask}
+            timer={activeTimers[focusImmersiveTask.id]}
+            duration={selectedDuration[focusImmersiveTask.id] || 1500}
+            onStart={() => startTimer(focusImmersiveTask.id, focusImmersiveTask.title, selectedDuration[focusImmersiveTask.id] || 1500)}
+            onPause={() => pauseTimer(focusImmersiveTask.id)}
+            onAbandon={() => {
+              killTimer(focusImmersiveTask.id)
+              fetch('/api/tree', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  task_id: focusImmersiveTask.id,
+                  timer_duration: Math.round((selectedDuration[focusImmersiveTask.id] || 1500) / 60),
+                  status: 'dead',
+                }),
+              })
+            }}
+            onComplete={(durationMins) => {
+              handleComplete(focusImmersiveTask.id, durationMins)
+              setFocusImmersiveTask(null)
+            }}
+            onDurationChange={(secs) => {
+              setSelectedDuration(prev => ({ ...prev, [focusImmersiveTask.id]: secs }))
+              resetTimer(focusImmersiveTask.id, secs)
+            }}
+            onClose={() => setFocusImmersiveTask(null)}
           />
         )}
       </AnimatePresence>
@@ -973,12 +1395,7 @@ No extra text. Just the JSON array.`
                       whileTap={{ scale:0.98 }}
                       className="flex items-center gap-3 px-4 py-4 rounded-2xl cursor-pointer"
                       style={{ background:'#F8FAFC', border:'1px solid #F1F5F9' }}
-                      onClick={() => {
-                        setTab('today')
-                        setTimeout(() => {
-                          startTimer(task.id, task.title, selectedDuration[task.id] || 1500)
-                        }, 300)
-                      }}
+                      onClick={() => setFocusImmersiveTask(task)}
                     >
                       <div className="w-2.5 h-2.5 rounded-full flex-shrink-0"
                         style={{ background:p.color }}/>

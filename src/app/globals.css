@@ -1,3 +1,316 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ═══════════════════════════════════════════════════════════════════
+   CLARIFYMIND DESIGN TOKENS
+   Single source of truth for every color, shadow, radius, and timing.
+   Usage in JSX:  style={{ color: 'var(--brand)' }}
+   Usage in CSS:  color: var(--text-primary);
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+
+  /* ── Brand ───────────────────────────────────────────────────── */
+  --brand:           #16A34A;
+  --brand-dark:      #15803D;
+  --brand-light:     #DCFCE7;
+  --brand-gradient:  linear-gradient(135deg, #16A34A, #15803D);
+
+  /* ── Pro / AI ────────────────────────────────────────────────── */
+  --pro:             #7C3AED;
+  --pro-blue:        #2563EB;
+  --pro-gradient:    linear-gradient(135deg, #7C3AED, #2563EB);
+
+  /* ── Surfaces ────────────────────────────────────────────────── */
+  --bg:              #FFFFFF;
+  --surface:         #F8FAFC;
+  --surface-raised:  #FFFFFF;
+  --border:          #F1F5F9;
+  --border-strong:   #E2E8F0;
+
+  /* ── Text ────────────────────────────────────────────────────── */
+  --text-primary:    #1E293B;
+  --text-secondary:  #64748B;
+  --text-muted:      #94A3B8;
+
+  /* ── Semantic ────────────────────────────────────────────────── */
+  --danger:          #EF4444;
+  --danger-bg:       #FEF2F2;
+  --danger-border:   #FECACA;
+  --warning:         #F59E0B;
+  --warning-bg:      #FFFBEB;
+  --warning-border:  #FDE68A;
+  --success:         #16A34A;
+  --success-bg:      #F0FDF4;
+  --success-border:  #BBF7D0;
+
+  /* ── Shadows (layered, low-opacity — never flat shadow-md) ───── */
+  --shadow-xs:       0 1px 2px rgba(0,0,0,0.05);
+  --shadow-sm:       0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:       0 4px 16px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
+  --shadow-lg:       0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
+  --shadow-xl:       0 16px 48px rgba(0,0,0,0.10), 0 4px 12px rgba(0,0,0,0.05);
+  --shadow-brand:    0 4px 20px rgba(22,163,74,0.22), 0 1px 4px rgba(22,163,74,0.12);
+  --shadow-pro:      0 4px 20px rgba(124,58,237,0.22), 0 1px 4px rgba(124,58,237,0.12);
+
+  /* ── Border radius ───────────────────────────────────────────── */
+  --radius-xs:       4px;
+  --radius-sm:       8px;
+  --radius-md:       12px;   /* buttons */
+  --radius-lg:       16px;   /* cards */
+  --radius-xl:       20px;   /* large cards */
+  --radius-2xl:      24px;
+  --radius-full:     9999px; /* pills */
+
+  /* ── Animation ───────────────────────────────────────────────── */
+  --ease-spring:     cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out:        cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --ease-in-out:     cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast:   120ms;
+  --duration-base:   220ms;
+  --duration-slow:   380ms;
+  --duration-enter:  400ms;
+
+  /* ── Legacy aliases (keep Tailwind happy) ─────────────────────── */
+  --background: var(--bg);
+  --foreground: var(--text-primary);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   BASE LAYER — global resets & defaults
+   ═══════════════════════════════════════════════════════════════════ */
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--text-primary);
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Brand-tinted text selection */
+  ::selection {
+    background: rgba(22, 163, 74, 0.16);
+    color: var(--text-primary);
+  }
+
+  /* Thin, brand-tinted scrollbar (Chrome/Safari) */
+  ::-webkit-scrollbar         { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track   { background: transparent; }
+  ::-webkit-scrollbar-thumb   {
+    background: rgba(22, 163, 74, 0.28);
+    border-radius: var(--radius-full);
+  }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(22, 163, 74, 0.48); }
+
+  /* Keyboard focus ring — green, not the default blue */
+  :focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   COMPONENT LAYER — reusable patterns extracted from the codebase
+   ═══════════════════════════════════════════════════════════════════ */
+
+@layer components {
+
+  /* ── Buttons ──────────────────────────────────────────────────── */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 18px;
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    font-weight: 700;
+    color: #ffffff;
+    background: var(--brand-gradient);
+    border: none;
+    cursor: pointer;
+    transition:
+      opacity    var(--duration-fast) var(--ease-out),
+      transform  var(--duration-fast) var(--ease-out),
+      box-shadow var(--duration-fast) var(--ease-out);
+  }
+  .btn-primary:hover  { box-shadow: var(--shadow-brand); opacity: 0.93; }
+  .btn-primary:active { transform: scale(0.97); }
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 9px 18px;
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    cursor: pointer;
+    transition:
+      background  var(--duration-fast) var(--ease-out),
+      border-color var(--duration-fast) var(--ease-out),
+      box-shadow  var(--duration-fast) var(--ease-out);
+  }
+  .btn-secondary:hover {
+    background: var(--bg);
+    border-color: var(--brand);
+    color: var(--brand);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .btn-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 9px 18px;
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--danger);
+    background: var(--danger-bg);
+    border: 1px solid var(--danger-border);
+    cursor: pointer;
+    transition: box-shadow var(--duration-fast) var(--ease-out);
+  }
+  .btn-danger:hover { box-shadow: 0 4px 12px rgba(239,68,68,0.18); }
+
+  /* ── Cards ────────────────────────────────────────────────────── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+  }
+
+  .card-raised {
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* ── Badges ───────────────────────────────────────────────────── */
+  .pro-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 5px;
+    border-radius: var(--radius-xs);
+    font-size: 7px;
+    font-weight: 700;
+    line-height: 1.4;
+    color: #ffffff;
+    background: var(--pro-gradient);
+  }
+
+  .badge-success {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--brand);
+    background: var(--success-bg);
+    border: 1px solid var(--success-border);
+  }
+
+  .badge-warning {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--warning);
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+  }
+
+  /* ── Tab bar (shared pattern across all pages) ────────────────── */
+  .tab-bar {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    border-radius: var(--radius-xl);
+    background: var(--border);
+  }
+
+  .tab-item {
+    flex: 1;
+    padding: 7px 12px;
+    border-radius: var(--radius-lg);
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+    transition:
+      background  var(--duration-base) var(--ease-out),
+      color       var(--duration-base) var(--ease-out),
+      box-shadow  var(--duration-base) var(--ease-out);
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+  }
+
+  .tab-item[data-active="true"],
+  .tab-item.active {
+    background: var(--bg);
+    color: var(--pro);
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* ── Form inputs ──────────────────────────────────────────────── */
+  .input {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    color: var(--text-primary);
+    background: var(--bg);
+    border: 1px solid var(--border-strong);
+    outline: none;
+    transition:
+      border-color var(--duration-fast) var(--ease-out),
+      box-shadow   var(--duration-fast) var(--ease-out);
+  }
+  .input::placeholder { color: var(--text-muted); }
+  .input:focus {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px rgba(22,163,74,0.12);
+  }
+
+  /* ── Section label (uppercase tracking) ──────────────────────── */
+  .label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  /* ── Floating pill (timer, streak) ───────────────────────────── */
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: var(--radius-full);
+    font-size: 12px;
+    font-weight: 700;
+  }
+}

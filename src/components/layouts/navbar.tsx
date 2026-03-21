@@ -70,6 +70,18 @@ export default function Navbar() {
   const isTrialActive  = trialDaysLeft !== null && trialDaysLeft > 0
   const isTrialExpired = trialDaysLeft !== null && trialDaysLeft === 0 && !isPro
 
+  // ── Streak achievement tiers ──────────────────────────────────────────────
+  function getAchievement(streak: number) {
+    if (streak >= 100) return { icon:'⭐', label:'Legend',        sub:'Unstoppable',    color:'#7C3AED', border:'#C4B5FD', bg:'#F5F3FF', next: null        }
+    if (streak >= 60)  return { icon:'💎', label:'Focus Master',  sub:'Diamond mind',   color:'#0EA5E9', border:'#BAE6FD', bg:'#F0F9FF', next: 100         }
+    if (streak >= 30)  return { icon:'🏆', label:'Forest Keeper', sub:'Month streak!',  color:'#D97706', border:'#FDE68A', bg:'#FFFBEB', next: 60          }
+    if (streak >= 14)  return { icon:'🌲', label:'Sapling',       sub:'Two weeks in',   color:'#16A34A', border:'#86EFAC', bg:'#F0FDF4', next: 30          }
+    if (streak >= 7)   return { icon:'🌿', label:'Sprout',        sub:'One week strong',color:'#22C55E', border:'#BBF7D0', bg:'#F0FDF4', next: 14          }
+    if (streak >= 3)   return { icon:'🌱', label:'Seedling',      sub:'First 3 days',   color:'#65A30D', border:'#D9F99D', bg:'#F7FEE7', next: 7           }
+    return null
+  }
+  const achievement = getAchievement(globalStreak)
+
   return (
     <>
       {/* Flying tree animations - fly from task card to streak icon */}
@@ -184,23 +196,61 @@ export default function Navbar() {
             )}
 
             {/* STREAK COUNTER - flying tree destination */}
-            <div
-              ref={streakRef}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold cursor-pointer"
-              style={{ background:'#FFF7ED', color:'#EA580C', border:'1px solid #FED7AA' }}
-              onClick={() => router.push('/myworld')}
-            >
-              <motion.span
-                animate={globalStreak > 0 ? { scale:[1,1.3,1] } : {}}
-                transition={{ duration:0.4 }}
+            <div className="relative group" ref={streakRef}>
+              <div
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold cursor-pointer transition-all"
+                style={{
+                  background: achievement ? achievement.bg : '#FFF7ED',
+                  color: achievement ? achievement.color : '#EA580C',
+                  border: `1px solid ${achievement ? achievement.border : '#FED7AA'}`,
+                  boxShadow: achievement ? `0 0 0 2px ${achievement.border}40` : 'none',
+                }}
+                onClick={() => router.push('/myworld')}
               >
-                🌳
-              </motion.span>
-              <span>{globalStreak}</span>
-              {globalStreak > 0 && (
-                <span className="text-xs" style={{ color:'#EA580C' }}>
-                  🔥
-                </span>
+                <motion.span
+                  animate={globalStreak > 0 ? { scale:[1,1.3,1] } : {}}
+                  transition={{ duration:0.4 }}
+                >
+                  🌳
+                </motion.span>
+                <span>{globalStreak}</span>
+                {globalStreak > 0 && <span>🔥</span>}
+
+                {/* Achievement badge — overlaps top-right corner */}
+                {achievement && (
+                  <motion.span
+                    key={achievement.label}
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 18 }}
+                    className="absolute -top-2 -right-1.5 text-xs leading-none rounded-full w-4 h-4 flex items-center justify-center shadow-sm"
+                    style={{ background: '#fff', border: `1.5px solid ${achievement.border}`, fontSize: '9px' }}
+                  >
+                    {achievement.icon}
+                  </motion.span>
+                )}
+              </div>
+
+              {/* Tooltip on hover */}
+              {achievement && (
+                <div className="absolute top-full right-0 mt-2 z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                  <div className="rounded-xl px-3 py-2 text-xs shadow-lg whitespace-nowrap"
+                    style={{ background:'#1E293B', color:'#F8FAFC', minWidth:'140px' }}>
+                    <div className="flex items-center gap-1.5 font-semibold mb-0.5">
+                      <span>{achievement.icon}</span>
+                      <span>{achievement.label}</span>
+                    </div>
+                    <div style={{ color:'#94A3B8' }}>{achievement.sub}</div>
+                    {achievement.next && (
+                      <div className="mt-1 pt-1" style={{ borderTop:'1px solid #334155', color:'#64748B' }}>
+                        {achievement.next - globalStreak}d to next tier
+                      </div>
+                    )}
+                    {/* Arrow */}
+                    <div className="absolute -top-1.5 right-3 w-3 h-3 rotate-45"
+                      style={{ background:'#1E293B' }}/>
+                  </div>
+                </div>
               )}
             </div>
 
