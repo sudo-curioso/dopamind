@@ -32,7 +32,7 @@ export default function SignupPage() {
     setError('')
 
     const supabase = createClient()
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -47,7 +47,13 @@ export default function SignupPage() {
       return
     }
 
-    setSuccess(true)
+    if (data.session) {
+      router.push('/survey/1')
+      router.refresh()
+    } else {
+      setSuccess(true)
+    }
+
     setLoading(false)
   }
 
@@ -72,20 +78,41 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-white px-4">
       <div className="max-w-md w-full space-y-8">
+
+        {/* Logo */}
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-slate-900">ClarifyMind</h1>
-          <p className="mt-2 text-slate-500">Create your free account</p>
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold"
+              style={{ background: 'linear-gradient(135deg, #2563EB, #7C3AED)' }}
+            >
+              C
+            </div>
+            <span className="text-lg font-semibold text-slate-900">ClarifyMind</span>
+          </div>
+          <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">
+            Create your free account
+          </h1>
+          <p className="mt-1 text-sm text-slate-400">
+            Built for ADHD brains. Simple. Calm. Effective.
+          </p>
         </div>
 
         {error && (
-          <div className="bg-red-50 text-red-600 px-4 py-3 rounded-lg text-sm">
+          <div
+            className="px-4 py-3 rounded-xl text-sm"
+            style={{ background: '#FEF2F2', color: '#EF4444' }}
+          >
             {error}
           </div>
         )}
 
         <form onSubmit={handleSignup} className="space-y-5">
-          <div className="space-y-1">
-            <Label htmlFor="name">Your name</Label>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="name" className="text-sm font-medium text-slate-700">
+              Your name
+            </Label>
             <Input
               id="name"
               type="text"
@@ -94,11 +121,14 @@ export default function SignupPage() {
               onChange={(e) => setName(e.target.value)}
               placeholder="First name"
               required
+              className="rounded-xl"
             />
           </div>
 
-          <div className="space-y-1">
-            <Label htmlFor="email">Email</Label>
+          <div className="space-y-1.5">
+            <Label htmlFor="email" className="text-sm font-medium text-slate-700">
+              Email
+            </Label>
             <Input
               id="email"
               type="email"
@@ -107,11 +137,14 @@ export default function SignupPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
               required
+              className="rounded-xl"
             />
           </div>
 
-          <div className="space-y-1">
-            <Label htmlFor="password">Password</Label>
+          <div className="space-y-1.5">
+            <Label htmlFor="password" className="text-sm font-medium text-slate-700">
+              Password
+            </Label>
             <Input
               id="password"
               type="password"
@@ -120,6 +153,7 @@ export default function SignupPage() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Minimum 12 characters"
               required
+              className="rounded-xl"
             />
           </div>
 
@@ -131,7 +165,7 @@ export default function SignupPage() {
               checked={consent}
               onChange={(e) => setConsent(e.target.checked)}
             />
-            <label htmlFor="consent" className="text-sm text-slate-600">
+            <label htmlFor="consent" className="text-xs text-slate-500 leading-relaxed">
               I agree to the{' '}
               <Link href="/privacy" className="text-blue-600 hover:underline">
                 Privacy Policy
@@ -140,26 +174,33 @@ export default function SignupPage() {
               <Link href="/terms" className="text-blue-600 hover:underline">
                 Terms of Service
               </Link>
-              . I understand ClarifyMind is a productivity tool and not a
-              medical service.
+              . I understand ClarifyMind is a productivity tool and not a medical service.
             </label>
           </div>
 
-          <Button
+          <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700"
             disabled={loading || !consent}
+            className="w-full py-3.5 rounded-2xl text-sm font-semibold text-white transition-all"
+            style={{
+              background: consent
+                ? 'linear-gradient(135deg, #2563EB, #7C3AED)'
+                : '#E2E8F0',
+              color: consent ? '#fff' : '#94A3B8',
+            }}
           >
             {loading ? 'Creating account...' : 'Create free account'}
-          </Button>
+          </button>
+
         </form>
 
         <p className="text-center text-sm text-slate-500">
           Already have an account?{' '}
-          <Link href="/login" className="text-blue-600 hover:underline font-medium">
+          <Link href="/login" className="font-medium" style={{ color: '#2563EB' }}>
             Sign in
           </Link>
         </p>
+
       </div>
     </div>
   )
