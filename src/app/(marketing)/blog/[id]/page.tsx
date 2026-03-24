@@ -1,6 +1,10 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
+export function generateStaticParams() {
+  return Array.from({ length: 12 }, (_, i) => ({ id: String(i + 1) }))
+}
+
 // ── TYPES ──────────────────────────────────────────────────────────────────────
 interface Section {
   heading: string
@@ -622,7 +626,6 @@ export default function BlogPostPage({ params }: { params: { id: string } }) {
 
   const related = Object.values(ARTICLES)
     .filter(a => a.id !== id)
-    .sort(() => Math.random() - 0.5)
     .slice(0, 3)
 
   return (
