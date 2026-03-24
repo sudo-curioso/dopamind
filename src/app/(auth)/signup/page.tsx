@@ -21,32 +21,37 @@ export default function SignupPage() {
     if (password.length < 8) { setError('Password must be at least 8 characters.'); return }
     setLoading(true); setError('')
 
-    const supabase = createClient()
-    const { data, error: signUpError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: name, display_name: name },
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
-    })
+    try {
+      const supabase = createClient()
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { full_name: name, display_name: name },
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      })
 
-    if (signUpError) {
-      setError(signUpError.message)
+      if (signUpError) {
+        setError(signUpError.message)
+        setLoading(false)
+        return
+      }
+
+      // Email confirmation disabled → session returned immediately
+      if (data.session) {
+        router.push('/survey/1')
+        router.refresh()
+        return
+      }
+
+      // Email confirmation enabled → show check inbox screen
+      setSuccess(true)
       setLoading(false)
-      return
+    } catch (err) {
+      setError('Something went wrong. Please try again.')
+      setLoading(false)
     }
-
-    // Email confirmation disabled → session returned immediately
-    if (data.session) {
-      router.push('/survey/1')
-      router.refresh()
-      return
-    }
-
-    // Email confirmation enabled → show check inbox screen
-    setSuccess(true)
-    setLoading(false)
   }
 
   if (success) {
