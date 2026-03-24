@@ -6,7 +6,7 @@ import { TimerProvider } from "@/context/timer-context";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "ClarifyMind",
+  title: "Dopamind",
   description: "ADHD Productivity App",
 };
 

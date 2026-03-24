@@ -75,7 +75,7 @@ const ARTICLES: Record<number, Article> = {
         relatable: "The r/ADHD thread 'The to-do list that haunts me' has thousands of upvotes from people describing identical lists from weeks ago, untouched — yet they somehow deep-cleaned their bathroom at 2am. If that is you, it is not failure. It is biology.",
       },
     ],
-    cta: "ClarifyMind turns your tasks into timed focus sessions with visual tree rewards. Try it free for 14 days.",
+    cta: "Dopamind turns your tasks into timed focus sessions with visual tree rewards. Try it free for 14 days.",
   },
 
   2: {
@@ -119,7 +119,7 @@ const ARTICLES: Record<number, Article> = {
           "Silent video call with a friend. You do not need to talk. Just work on your own things on a shared call.",
           "Work at a coffee shop or library. Background people count as body doubles.",
           "Use 'Study With Me' YouTube videos with ambient sound. One-sided body doubling works better than nothing.",
-          "Use ClarifyMind's Body Double rooms to find others working in real-time on their ADHD tasks.",
+          "Use Dopamind's Body Double rooms to find others working in real-time on their ADHD tasks.",
         ],
       },
       {
@@ -129,7 +129,7 @@ const ARTICLES: Record<number, Article> = {
         relatable: "On r/ADHD, the post 'Anyone else literally cannot work alone but can get everything done at a coffee shop?' has been posted in some variation hundreds of times. You are not weird. Your brain is responding to biology.",
       },
     ],
-    cta: "ClarifyMind's Body Double rooms connect you with others working on ADHD tasks in real time. Try it free.",
+    cta: "Dopamind's Body Double rooms connect you with others working on ADHD tasks in real time. Try it free.",
   },
 
   3: {
@@ -176,7 +176,7 @@ const ARTICLES: Record<number, Article> = {
         relatable: "The most upvoted sentiment across ADHD medication threads: 'I took it and for the first time in 30 years I did the dishes without a three-hour internal battle.' That is not a high. That is a brain finally getting to function.",
       },
     ],
-    cta: "ClarifyMind complements your ADHD treatment plan with focus timers, task management, and progress tracking designed for ADHD brains.",
+    cta: "Dopamind complements your ADHD treatment plan with focus timers, task management, and progress tracking designed for ADHD brains.",
   },
 
   4: {
@@ -222,7 +222,7 @@ const ARTICLES: Record<number, Article> = {
         relatable: "The r/ADHD experience of thinking 'I have plenty of time,' then suddenly being 25 minutes late to something that started 10 minutes ago has been described so precisely and so often that it has its own recurring meme format in the community.",
       },
     ],
-    cta: "ClarifyMind's visual focus timer makes time visible and real for ADHD brains. Try it free — no credit card needed.",
+    cta: "Dopamind's visual focus timer makes time visible and real for ADHD brains. Try it free — no credit card needed.",
   },
 
   5: {
@@ -268,7 +268,7 @@ const ARTICLES: Record<number, Article> = {
         relatable: "One widely shared post: 'I misread a text as cold and spent six hours in emotional agony. The sender was just tired. This is ADHD, not drama.' That post resonated with hundreds of thousands of ADHD adults who recognized themselves in every word.",
       },
     ],
-    cta: "Understanding your ADHD is the first step. ClarifyMind helps you build daily systems that work with your brain, not against it.",
+    cta: "Understanding your ADHD is the first step. Dopamind helps you build daily systems that work with your brain, not against it.",
   },
 
   6: {
@@ -312,10 +312,10 @@ const ARTICLES: Record<number, Article> = {
         heading: "The real lesson",
         body: [],
         myth: "'If Pomodoro does not work for you, you have no self-control.' Pomodoro was designed for a different brain. ADHD adults are not failing the technique. The technique needs adapting for them.",
-        relatable: "ClarifyMind offers focus timer presets at 5, 15, 25, 45, and 60 minutes precisely because there is no single right interval for ADHD brains. The right session length is the one that matches how your brain actually works today.",
+        relatable: "Dopamind offers focus timer presets at 5, 15, 25, 45, and 60 minutes precisely because there is no single right interval for ADHD brains. The right session length is the one that matches how your brain actually works today.",
       },
     ],
-    cta: "ClarifyMind's focus timers let you pick your own interval and grow a virtual tree when you complete each session. Try it free.",
+    cta: "Dopamind's focus timers let you pick your own interval and grow a virtual tree when you complete each session. Try it free.",
   },
 
   7: {
@@ -362,7 +362,7 @@ const ARTICLES: Record<number, Article> = {
         relatable: "The r/ADHD post 'I need to send one email. It has been six weeks.' has accumulated tens of thousands of upvotes and hundreds of replies from people who understand exactly what that sentence means. If you are one of them, you are not alone and you are not broken.",
       },
     ],
-    cta: "ClarifyMind is designed around how ADHD brains actually work — with visual timers, gamified rewards, and zero judgment. Try it free.",
+    cta: "Dopamind is designed around how ADHD brains actually work — with visual timers, gamified rewards, and zero judgment. Try it free.",
   },
 
   8: {
@@ -409,7 +409,7 @@ const ARTICLES: Record<number, Article> = {
         relatable: "One viral tweet captured the ADHD dopamine problem perfectly: 'Neurotypical brain: I should do this. ADHD brain: Yes but does it ignite something in my soul or do I physically die?' The humor lands because it is neurochemically accurate.",
       },
     ],
-    cta: "ClarifyMind is designed around dopamine science — immediate rewards, visual feedback, and gamified progress built specifically for ADHD brains.",
+    cta: "Dopamind is designed around dopamine science — immediate rewards, visual feedback, and gamified progress built specifically for ADHD brains.",
   },
 
   9: {
@@ -456,7 +456,7 @@ const ARTICLES: Record<number, Article> = {
         relatable: "The late diagnosis experience — crying in a neuropsychologist's office not from sadness but from recognition, from decades of confusion suddenly making sense — is one of the most commonly shared experiences in adult ADHD spaces. If that was you, you are not alone. You were never broken. You were undiagnosed.",
       },
     ],
-    cta: "ClarifyMind is built for adult ADHD brains — wherever you are in your journey. No judgment. Just tools that work. Try it free.",
+    cta: "Dopamind is built for adult ADHD brains — wherever you are in your journey. No judgment. Just tools that work. Try it free.",
   },
 
   10: {
@@ -503,7 +503,7 @@ const ARTICLES: Record<number, Article> = {
         relatable: "The r/ADHD experience of lying awake until 2am, exhausted but with a wired brain that refuses to stop, then being completely non-functional the next day — that is not a habit. That is a circadian clock that never got the memo about normal sleep hours.",
       },
     ],
-    cta: "Better sleep starts with better daytime structure. ClarifyMind's focus timers help you build a consistent daily rhythm that supports sleep.",
+    cta: "Better sleep starts with better daytime structure. Dopamind's focus timers help you build a consistent daily rhythm that supports sleep.",
   },
 
   11: {
@@ -550,7 +550,7 @@ const ARTICLES: Record<number, Article> = {
         relatable: "The experience of looking up from hyperfocus to realize you missed dinner, three alarms, and a message that said 'did you forget we had plans?' — that is not carelessness. That is what it looks like when a brain locks into a dopamine signal and the outside world stops being real.",
       },
     ],
-    cta: "ClarifyMind's focus timers help you channel your focus intentionally and know when to stop. Try it free.",
+    cta: "Dopamind's focus timers help you channel your focus intentionally and know when to stop. Try it free.",
   },
 
   12: {
@@ -597,7 +597,7 @@ const ARTICLES: Record<number, Article> = {
         relatable: "The r/ADHD post 'My morning routine is: lie in bed for 45 minutes negotiating with myself, then rush through everything in 8 minutes while hating myself' has been called painfully accurate by thousands of people. If that is you, you are not broken. You are running a high-demand system on low-dopamine fuel. The fix is fuel, not willpower.",
       },
     ],
-    cta: "ClarifyMind helps you build a sustainable daily focus system with timers, task management, and gamified rewards designed for ADHD. Start your free trial today.",
+    cta: "Dopamind helps you build a sustainable daily focus system with timers, task management, and gamified rewards designed for ADHD. Start your free trial today.",
   },
 }
 
@@ -645,7 +645,7 @@ export default function BlogPostPage({ params }: { params: { id: string } }) {
           >
             C
           </div>
-          <span className="text-sm font-semibold text-slate-900 tracking-tight">ClarifyMind</span>
+          <span className="text-sm font-semibold text-slate-900 tracking-tight">Dopamind</span>
         </Link>
         <Link
           href="/blog"
@@ -689,7 +689,7 @@ export default function BlogPostPage({ params }: { params: { id: string } }) {
             >
               CM
             </div>
-            <span className="font-medium text-slate-600">ClarifyMind Team</span>
+            <span className="font-medium text-slate-600">Dopamind Team</span>
             <span>·</span>
             <span>{article.date}</span>
             <span>·</span>
@@ -879,7 +879,7 @@ export default function BlogPostPage({ params }: { params: { id: string } }) {
         className="px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 mt-8"
         style={{ borderTop: '1px solid #F1F5F9' }}
       >
-        <p className="text-xs text-slate-400">© 2026 ClarifyMind. All rights reserved.</p>
+        <p className="text-xs text-slate-400">© 2026 Dopamind. All rights reserved.</p>
         <div className="flex gap-6">
           <Link href="/blog" className="text-xs text-slate-400 hover:text-slate-600" style={{ transition: 'color 150ms' }}>All articles</Link>
           <Link href="/pricing" className="text-xs text-slate-400 hover:text-slate-600" style={{ transition: 'color 150ms' }}>Pricing</Link>

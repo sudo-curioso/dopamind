@@ -201,7 +201,7 @@ export default function SettingsPage() {
 
           <div className="border-t border-slate-100 pt-6">
             <p className="text-xs text-slate-400 text-center">
-              ClarifyMind stores reminder times only. We never ask for or store
+              Dopamind stores reminder times only. We never ask for or store
               medication names, dosages, or medical information.
             </p>
           </div>

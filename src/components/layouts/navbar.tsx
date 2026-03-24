@@ -126,7 +126,7 @@ export default function Navbar() {
               style={{ background: 'linear-gradient(135deg,#16A34A,#15803D)' }}>
               C
             </div>
-            <span className="text-sm font-semibold text-slate-900 tracking-tight">ClarifyMind</span>
+            <span className="text-sm font-semibold text-slate-900 tracking-tight">Dopamind</span>
           </Link>
 
           {/* Nav links */}

@@ -95,7 +95,7 @@ export default function SurveyPage1() {
             >
               C
             </div>
-            <span className="text-sm font-semibold text-slate-900">ClarifyMind</span>
+            <span className="text-sm font-semibold text-slate-900">Dopamind</span>
           </div>
 
           {/* Progress bar */}

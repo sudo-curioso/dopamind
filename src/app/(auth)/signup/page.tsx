@@ -88,7 +88,7 @@ export default function SignupPage() {
             >
               C
             </div>
-            <span className="text-lg font-semibold text-slate-900">ClarifyMind</span>
+            <span className="text-lg font-semibold text-slate-900">Dopamind</span>
           </div>
           <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">
             Create your free account
@@ -174,7 +174,7 @@ export default function SignupPage() {
               <Link href="/terms" className="text-blue-600 hover:underline">
                 Terms of Service
               </Link>
-              . I understand ClarifyMind is a productivity tool and not a medical service.
+              . I understand Dopamind is a productivity tool and not a medical service.
             </label>
           </div>
 

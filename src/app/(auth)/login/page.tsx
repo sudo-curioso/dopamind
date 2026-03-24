@@ -64,7 +64,7 @@ export default function LoginPage() {
           <h1 className="text-2xl font-bold text-slate-900">Check your inbox</h1>
           <p className="text-slate-600">
             We sent a sign-in link to <strong>{email}</strong>.
-            Click it to access ClarifyMind.
+            Click it to access Dopamind.
           </p>
           <p className="text-sm text-slate-400">Link expires in 10 minutes.</p>
           <button
@@ -82,7 +82,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-white px-4">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-slate-900">ClarifyMind</h1>
+          <h1 className="text-3xl font-bold text-slate-900">Dopamind</h1>
           <p className="mt-2 text-slate-500">Sign in to your account</p>
         </div>
 

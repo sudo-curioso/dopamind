@@ -153,7 +153,7 @@ export default function BodyDoublePage() {
               Body Doubling Rooms
             </h1>
             <p className="text-sm text-slate-500 leading-relaxed">
-              Join a silent focus room with other ClarifyMind users.
+              Join a silent focus room with other Dopamind users.
               Work alongside others without distraction.
               Proven to help ADHD brains focus.
             </p>

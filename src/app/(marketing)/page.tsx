@@ -75,7 +75,7 @@ export default function LandingPage() {
           >
             C
           </div>
-          <span className="text-sm font-semibold text-slate-900 tracking-tight">ClarifyMind</span>
+          <span className="text-sm font-semibold text-slate-900 tracking-tight">Dopamind</span>
         </div>
 
         <nav className="hidden sm:flex items-center gap-6">
@@ -154,7 +154,7 @@ export default function LandingPage() {
           transition={{ duration: 0.55, delay: 0.2 }}
           className="text-lg text-slate-500 max-w-xl mx-auto mb-8 leading-relaxed"
         >
-          ClarifyMind helps adults with ADHD get things done without
+          Dopamind helps adults with ADHD get things done without
           overwhelming systems, shame spirals, or complex setup.
           Simple. Calm. Effective.
         </motion.p>
@@ -420,7 +420,7 @@ export default function LandingPage() {
           className="mt-10 p-4 rounded-2xl text-xs text-slate-400 leading-relaxed text-left"
           style={{ background: '#F8FAFC', border: '1px solid #F1F5F9' }}
         >
-          ClarifyMind is a productivity tool, not a medical service.
+          Dopamind is a productivity tool, not a medical service.
           It is not a substitute for professional diagnosis, treatment,
           or medical advice. Always consult a qualified healthcare provider
           for ADHD diagnosis and treatment.
@@ -439,7 +439,7 @@ export default function LandingPage() {
           >
             C
           </div>
-          <p className="text-xs text-slate-400">© 2026 ClarifyMind. All rights reserved.</p>
+          <p className="text-xs text-slate-400">© 2026 Dopamind. All rights reserved.</p>
         </div>
         <div className="flex gap-6">
           {['Privacy Policy', 'Terms of Service', 'Blog'].map(l => (

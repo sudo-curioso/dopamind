@@ -22,7 +22,7 @@ export default function PricingPage() {
             C
           </div>
           <span className="text-sm font-semibold text-slate-900 tracking-tight">
-            ClarifyMind
+            Dopamind
           </span>
         </Link>
 
@@ -206,16 +206,16 @@ export default function PricingPage() {
           </h2>
           {[
             {
-              q: 'Can I use ClarifyMind for free forever?',
+              q: 'Can I use Dopamind for free forever?',
               a: 'Yes. The free plan has no time limit. You get all core features including brain dump, focus timer, AI task slicer, progress tracking, and more.'
             },
             {
               q: 'What is Body Doubling?',
-              a: 'Body doubling is working silently alongside another person. It is one of the most effective ADHD productivity strategies. Our rooms let you do this virtually with other ClarifyMind users.'
+              a: 'Body doubling is working silently alongside another person. It is one of the most effective ADHD productivity strategies. Our rooms let you do this virtually with other Dopamind users.'
             },
             {
               q: 'Is my data private?',
-              a: 'Yes. ClarifyMind is GDPR compliant. Your data is encrypted and stored in EU servers. We never sell your data. Medication reminders store time only, never medication names.'
+              a: 'Yes. Dopamind is GDPR compliant. Your data is encrypted and stored in EU servers. We never sell your data. Medication reminders store time only, never medication names.'
             },
             {
               q: 'Can I cancel anytime?',
@@ -240,7 +240,7 @@ export default function PricingPage() {
         className="px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4"
         style={{ borderTop: '1px solid #F1F5F9' }}
       >
-        <p className="text-xs text-slate-400">© 2026 ClarifyMind. All rights reserved.</p>
+        <p className="text-xs text-slate-400">© 2026 Dopamind. All rights reserved.</p>
         <div className="flex gap-6">
           {['Privacy Policy', 'Terms of Service', 'Blog'].map(l => (
             <Link key={l} href="/" className="text-xs text-slate-400 hover:text-slate-600">

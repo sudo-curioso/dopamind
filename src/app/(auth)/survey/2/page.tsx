@@ -47,7 +47,7 @@ const QUESTIONS = [
   },
   {
     id: 'goal',
-    question: 'What is your main goal with ClarifyMind?',
+    question: 'What is your main goal with Dopamind?',
     options: [
       'Complete more tasks daily',
       'Reduce anxiety around work',
@@ -121,7 +121,7 @@ export default function SurveyPage2() {
             >
               C
             </div>
-            <span className="text-sm font-semibold text-slate-900">ClarifyMind</span>
+            <span className="text-sm font-semibold text-slate-900">Dopamind</span>
           </div>
 
           {/* Progress bar */}
@@ -228,7 +228,7 @@ export default function SurveyPage2() {
               color: allAnswered ? '#fff' : '#94A3B8',
             }}
           >
-            {loading ? 'Setting up your account...' : 'Get started with ClarifyMind →'}
+            {loading ? 'Setting up your account...' : 'Get started with Dopamind →'}
           </button>
 
           <button

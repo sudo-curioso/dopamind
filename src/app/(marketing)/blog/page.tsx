@@ -173,7 +173,7 @@ export default function BlogPage() {
           >
             C
           </div>
-          <span className="text-sm font-semibold text-slate-900 tracking-tight">ClarifyMind</span>
+          <span className="text-sm font-semibold text-slate-900 tracking-tight">Dopamind</span>
         </Link>
 
         <nav className="hidden sm:flex items-center gap-6">
@@ -204,7 +204,7 @@ export default function BlogPage() {
       >
         <div className="max-w-2xl mx-auto">
           <p className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: '#16A34A' }}>
-            The ClarifyMind Blog
+            The Dopamind Blog
           </p>
           <h1
             className="text-5xl font-black text-slate-900 tracking-tight leading-tight mb-4"
@@ -407,7 +407,7 @@ export default function BlogPage() {
         className="px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4"
         style={{ borderTop: '1px solid #F1F5F9' }}
       >
-        <p className="text-xs text-slate-400">© 2026 ClarifyMind. All rights reserved.</p>
+        <p className="text-xs text-slate-400">© 2026 Dopamind. All rights reserved.</p>
         <div className="flex gap-6">
           {['Privacy Policy', 'Terms of Service', 'Pricing'].map(l => (
             <Link key={l} href="/" className="text-xs text-slate-400 hover:text-slate-600" style={{ transition: 'color 150ms' }}>
