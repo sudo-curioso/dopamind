@@ -124,7 +124,7 @@ export default function Navbar() {
           <Link href="/tasks" className="flex items-center gap-2 flex-shrink-0">
             <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold"
               style={{ background: 'linear-gradient(135deg,#16A34A,#15803D)' }}>
-              C
+              D
             </div>
             <span className="text-sm font-semibold text-slate-900 tracking-tight">Dopamind</span>
           </Link>
