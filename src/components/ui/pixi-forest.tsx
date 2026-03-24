@@ -350,6 +350,62 @@ function renderMushroom(G: any, sc: number, type: 'red'|'small') {
   }
 }
 
+// ─── BUSH ────────────────────────────────────────────────────────────────────
+function renderBush(G: any, sc: number) {
+  const s = sc
+  // shadow
+  G.beginFill(0x1A3D0A, 0.18); G.drawEllipse(2*s, 2*s, 18*s, 6*s); G.endFill()
+  // dark side blob
+  G.beginFill(0x1A6B30); G.drawEllipse(3.5*s, 1*s, 20*s, 14*s); G.endFill()
+  // main round body
+  G.beginFill(0x2D8A44); G.drawEllipse(0, 0, 20*s, 14*s); G.endFill()
+  // top highlight blob
+  G.beginFill(0x3DAA55); G.drawEllipse(-2*s, -2.5*s, 14*s, 10*s); G.endFill()
+  G.beginFill(0x5DC96A, 0.42); G.drawEllipse(-4*s, -4*s, 7*s, 5.5*s); G.endFill()
+  // white daisy flowers
+  for (const [dx, dy] of [[-5,-8],[2,-10],[8,-5],[-1,-6],[5,-9]]) {
+    for (let p = 0; p < 5; p++) {
+      const ang = (p/5)*Math.PI*2
+      G.beginFill(0xFFFFFF, 0.92)
+      G.drawEllipse((dx+Math.cos(ang)*2.4)*s,(dy+Math.sin(ang)*2.4)*s,2*s,1.3*s)
+      G.endFill()
+    }
+    G.beginFill(0xFEF08A); G.drawCircle(dx*s,dy*s,1.5*s); G.endFill()
+  }
+}
+
+// ─── SPIRIT CREATURE ─────────────────────────────────────────────────────────
+function renderSpirit(G: any, sc: number) {
+  const s = sc
+  // ground shadow
+  G.beginFill(0x1A3D0A, 0.16); G.drawEllipse(0, 11*s, 10*s, 3.5*s); G.endFill()
+  // body dark side
+  G.beginFill(0x2E6B2C, 0.28); G.drawEllipse(1.5*s, 1.5*s, 12.5*s, 16*s); G.endFill()
+  // main body
+  G.beginFill(0x3D8B3A); G.drawEllipse(0, 0, 12.5*s, 16*s); G.endFill()
+  // wavy ghost skirt bottom
+  G.beginFill(0x3D8B3A)
+  G.drawPolygon([
+    -6*s,7*s, -4.5*s,12*s, -1.5*s,8.5*s, 1.5*s,12.5*s,
+    4.5*s,8.5*s, 6*s,11.5*s, 6*s,7*s
+  ])
+  G.endFill()
+  // top shimmer highlight
+  G.beginFill(0x7ACC70, 0.46); G.drawEllipse(-1.5*s, -4*s, 5*s, 4*s); G.endFill()
+  // eyes white
+  G.beginFill(0xFFFFFF, 0.94)
+  G.drawEllipse(-3.5*s,-1.5*s,3*s,3.8*s); G.drawEllipse(3.5*s,-1.5*s,3*s,3.8*s)
+  G.endFill()
+  // pupils
+  G.beginFill(0x162414)
+  G.drawCircle(-3.5*s,-1*s,1.4*s); G.drawCircle(3.5*s,-1*s,1.4*s)
+  G.endFill()
+  // eye highlights
+  G.beginFill(0xFFFFFF, 0.78)
+  G.drawCircle(-2.8*s,-1.8*s,0.6*s); G.drawCircle(4.2*s,-1.8*s,0.6*s)
+  G.endFill()
+}
+
 // ─── MAIN COMPONENT ──────────────────────────────────────────────────────────
 export default function PixiForest({ trees, width = 480, height = 420 }: PixiForestProps) {
   const mountRef = useRef<HTMLDivElement>(null)
@@ -497,9 +553,18 @@ export default function PixiForest({ trees, width = 480, height = 420 }: PixiFor
 
         // ── ISOMETRIC TERRAIN ─────────────────────────────────────────────────
         const TW = 48, TH = 24, SOIL = 62
-        const COLS = 9, ROWS = 9
+        // World expands with more alive trees
+        const aliveCount = trees.filter(t => t.status === 'alive').length
+        const COLS = aliveCount === 0 ? 4
+          : aliveCount <= 2  ? 5
+          : aliveCount <= 6  ? 6
+          : aliveCount <= 12 ? 7
+          : aliveCount <= 20 ? 8
+          : aliveCount <= 30 ? 9
+          : 10
+        const ROWS = COLS
         const OX = width / 2
-        const OY = height * 0.13
+        const OY = height * 0.13 + (10 - COLS) * TH * 0.4
 
         const iso = (col: number, row: number) => {
           return { x: OX + (col - row) * TW/2, y: OY + (col + row) * TH/2 }
@@ -676,6 +741,26 @@ export default function PixiForest({ trees, width = 480, height = 420 }: PixiFor
           worldLayer.addChild(tGi)
         }
 
+        // ── PRE-COMPUTE TREE ARRAYS ───────────────────────────────────────────
+        const aliveTrees = trees.filter(t => t.status === 'alive')
+        const deadTrees  = trees.filter(t => t.status === 'dead')
+        const allTrees   = [...aliveTrees, ...deadTrees]
+
+        // ── BUSHES ────────────────────────────────────────────────────────────
+        const rngBsh = mkRng(66)
+        const bushCount = Math.min(2 + Math.floor(aliveTrees.length * 0.4), 14)
+        for (let i = 0; i < bushCount; i++) {
+          const col = 1 + Math.floor(rngBsh()*(COLS-2))
+          const row = 1 + Math.floor(rngBsh()*(ROWS-2))
+          const pos = iso(col,row)
+          const bG = new PIXI.Graphics()
+          renderBush(bG, 0.62 + rngBsh()*0.42)
+          bG.x = pos.x + (rngBsh()-0.5)*TW*0.62
+          bG.y = pos.y + TH/2 + (rngBsh()-0.5)*TH*0.42
+          bG.zIndex = bG.y + 6
+          worldLayer.addChild(bG)
+        }
+
         // ── GROUND DECORATIONS ────────────────────────────────────────────────
         const rngDec = mkRng(99)
         const decorTiles: {col:number,row:number}[] = []
@@ -683,12 +768,13 @@ export default function PixiForest({ trees, width = 480, height = 420 }: PixiFor
           for (let col=1; col<COLS-1; col++)
             decorTiles.push({col,row})
 
-        for (let i = 0; i < 10; i++) {
+        const mushroomCount = Math.min(3 + Math.floor(aliveTrees.length * 0.5), 20)
+        for (let i = 0; i < mushroomCount; i++) {
           const idx = Math.floor(rngDec()*decorTiles.length)
           const {col,row} = decorTiles[idx]
           const pos = iso(col,row)
           const mG = new PIXI.Graphics()
-          renderMushroom(mG, 0.75+rngDec()*0.3, rngDec()>0.5?'red':'small')
+          renderMushroom(mG, 0.7+rngDec()*0.55, rngDec()>0.45?'red':'small')
           mG.x = pos.x + (rngDec()-0.5)*TW*0.65
           mG.y = pos.y + TH/2 + (rngDec()-0.5)*TH*0.38
           mG.zIndex = pos.y + TH/2 + 5
@@ -697,7 +783,8 @@ export default function PixiForest({ trees, width = 480, height = 420 }: PixiFor
 
         // Small flowers scattered organically
         const rngFlwr = mkRng(44)
-        for (let i = 0; i < 26; i++) {
+        const flowerCount = Math.min(8 + Math.floor(aliveTrees.length * 1.5), 48)
+        for (let i = 0; i < flowerCount; i++) {
           const col = 1 + Math.floor(rngFlwr()*(COLS-2))
           const row = 1 + Math.floor(rngFlwr()*(ROWS-2))
           const pos = iso(col,row)
@@ -719,10 +806,6 @@ export default function PixiForest({ trees, width = 480, height = 420 }: PixiFor
         }
 
         // ── TREES ─────────────────────────────────────────────────────────────
-        const aliveTrees = trees.filter(t => t.status === 'alive')
-        const deadTrees  = trees.filter(t => t.status === 'dead')
-        const allTrees   = [...aliveTrees, ...deadTrees]
-
         const rng = mkRng(42)
         const validTiles: {col:number,row:number}[] = []
         for (let row=1; row<ROWS-1; row++)
@@ -817,6 +900,32 @@ export default function PixiForest({ trees, width = 480, height = 420 }: PixiFor
           hint.anchor.set(0.5)
           hint.x = width/2; hint.y = height*0.65
           worldLayer.addChild(hint)
+        }
+
+        // ── SPIRIT CREATURES ──────────────────────────────────────────────────
+        if (aliveTrees.length >= 5) {
+          const spiritCount = Math.min(1 + Math.floor((aliveTrees.length - 5) / 5), 5)
+          const rngSp = mkRng(123)
+          for (let s = 0; s < spiritCount; s++) {
+            const col = 1 + Math.floor(rngSp()*(COLS-2))
+            const row = 1 + Math.floor(rngSp()*(ROWS-2))
+            const pos = iso(col, row)
+            const spCont = new PIXI.Container()
+            const spG = new PIXI.Graphics()
+            renderSpirit(spG, 0.52 + rngSp()*0.22)
+            spCont.addChild(spG)
+            spCont.x = pos.x + (rngSp()-0.5)*TW*0.5
+            spCont.y = pos.y - 10 + (rngSp()-0.5)*TH*0.4
+            spCont.zIndex = spCont.y + 20
+            worldLayer.addChild(spCont)
+            const spBaseY = spCont.y
+            const spPhase = rngSp() * Math.PI * 2
+            app.ticker.add(() => {
+              const t = performance.now()/1000
+              spCont.y = spBaseY + Math.sin(t * 0.9 + spPhase) * 4
+              spCont.rotation = Math.sin(t * 0.5 + spPhase) * 0.04
+            })
+          }
         }
 
         // ── WIND SWAY ─────────────────────────────────────────────────────────

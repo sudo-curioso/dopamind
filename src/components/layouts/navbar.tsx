@@ -13,6 +13,7 @@ export default function Navbar() {
   const { activeTimers, flyingTrees, globalStreak, setGlobalStreak } = useTimer()
   const [trialDaysLeft, setTrialDaysLeft] = useState<number | null>(null)
   const [isPro, setIsPro] = useState(false)
+  const [userInitial, setUserInitial] = useState('?')
   const streakRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => { loadUserData() }, [])
@@ -21,6 +22,9 @@ export default function Navbar() {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
+
+    const email = user.email ?? ''
+    setUserInitial((user.user_metadata?.full_name?.[0] ?? email[0] ?? '?').toUpperCase())
 
     const { data } = await supabase
       .from('users')
@@ -119,7 +123,7 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/tasks" className="flex items-center gap-2 flex-shrink-0">
             <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold"
-              style={{ background: 'linear-gradient(135deg,#2563EB,#7C3AED)' }}>
+              style={{ background: 'linear-gradient(135deg,#16A34A,#15803D)' }}>
               C
             </div>
             <span className="text-sm font-semibold text-slate-900 tracking-tight">ClarifyMind</span>
@@ -256,8 +260,8 @@ export default function Navbar() {
 
             {/* Avatar */}
             <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold text-white"
-              style={{ background:'linear-gradient(135deg,#2563EB,#7C3AED)' }}>
-              S
+              style={{ background:'linear-gradient(135deg,#16A34A,#15803D)' }}>
+              {userInitial}
             </div>
 
             <button onClick={handleSignOut}

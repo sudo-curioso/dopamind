@@ -49,29 +49,45 @@ function maskName(name: string) {
   return p.length === 1 ? p[0] : `${p[0]} ${p[p.length-1][0]}.`
 }
 
-function getDateRange(range: StatsRange) {
-  const now = new Date()
-  const start = new Date()
-  if (range === 'daily')   start.setDate(now.getDate() - 6)
-  if (range === 'weekly')  start.setDate(now.getDate() - 6 * 7)
-  if (range === 'monthly') start.setMonth(now.getMonth() - 5)
-  return { start, end: now }
-}
 
 // ── STAT CARD ──
 function StatCard({ icon, label, value, color }: {
   icon: string, label: string, value: string|number, color: string
 }) {
+  // derive a soft tint from the accent color
+  const bgMap: Record<string, string> = {
+    '#16A34A': '#F0FDF4',
+    '#EF4444': '#FEF2F2',
+    '#F59E0B': '#FFFBEB',
+    '#7C3AED': '#F5F3FF',
+    '#2563EB': '#EFF6FF',
+  }
+  const bg = bgMap[color] ?? '#F8FAFC'
+  const borderMap: Record<string, string> = {
+    '#16A34A': '#BBF7D0',
+    '#EF4444': '#FECACA',
+    '#F59E0B': '#FDE68A',
+    '#7C3AED': '#DDD6FE',
+    '#2563EB': '#BFDBFE',
+  }
+  const border = borderMap[color] ?? '#F1F5F9'
+
   return (
     <motion.div
       initial={{ opacity:0, y:8 }}
       animate={{ opacity:1, y:0 }}
+      whileHover={{ y: -2, boxShadow: '0 6px 20px rgba(0,0,0,0.08)' }}
       className="rounded-2xl p-4"
-      style={{ background:'#F8FAFC', border:'1px solid #F1F5F9' }}
+      style={{
+        background: bg,
+        border: `1px solid ${border}`,
+        boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+        transition: 'box-shadow 200ms ease, transform 200ms ease',
+      }}
     >
-      <div className="text-xl mb-1">{icon}</div>
-      <div className="text-2xl font-bold mb-0.5" style={{ color }}>{value}</div>
-      <div className="text-xs text-slate-400">{label}</div>
+      <div className="text-xl mb-2">{icon}</div>
+      <div className="text-2xl font-black mb-0.5" style={{ color }}>{value}</div>
+      <div className="text-xs font-medium" style={{ color: '#64748B' }}>{label}</div>
     </motion.div>
   )
 }

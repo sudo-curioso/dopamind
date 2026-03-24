@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useTimer, CHEER_MESSAGES, ActiveTimer } from '@/context/timer-context'
@@ -52,7 +52,7 @@ function CheerOverlay({
       <div
         className="rounded-3xl px-8 py-6 text-center shadow-2xl pointer-events-auto"
         style={{
-          background: 'linear-gradient(135deg, #1E1B4B, #312E81)',
+          background: 'linear-gradient(135deg, #14532D, #166534)',
           border: '1px solid rgba(255,255,255,0.15)',
           maxWidth: '320px',
           width: '90%',
@@ -68,7 +68,7 @@ function CheerOverlay({
         <p className="text-xl font-black text-white mb-1 tracking-tight">
           {message.bold}
         </p>
-        <p className="text-sm text-indigo-200">{message.sub}</p>
+        <p className="text-sm text-green-200">{message.sub}</p>
         <motion.div
           className="mt-4 flex justify-center gap-1"
           initial={{ opacity: 0 }}
@@ -569,7 +569,8 @@ export default function TasksPage() {
   const [vanishingTasks, setVanishingTasks] = useState<Set<string>>(new Set())
   const [cheerMsg, setCheerMsg] = useState<typeof CHEER_MESSAGES[0] | null>(null)
   const [customTimerFor, setCustomTimerFor] = useState<string | null>(null)
-  const taskCardRefs = useRef<Record<string, HTMLDivElement | null>>({})
+  const taskCardRefs    = useRef<Record<string, HTMLDivElement | null>>({})
+  const autoCompletedRef = useRef<Set<string>>(new Set())
 
   const [newTitle, setNewTitle] = useState('')
   const [newPriority, setNewPriority] = useState(2)
@@ -577,7 +578,6 @@ export default function TasksPage() {
   const [addLoading, setAddLoading] = useState(false)
 
   const [query, setQuery] = useState('')
-  const [progressView, setProgressView] = useState<'daily' | 'weekly' | 'monthly'>('weekly')
   const [streakData, setStreakData] = useState<{
     current_streak: number
     total_trees_grown: number
@@ -593,6 +593,22 @@ export default function TasksPage() {
   const [focusImmersiveTask, setFocusImmersiveTask] = useState<Task | null>(null)
 
   useEffect(() => { loadData() }, [])
+
+  // Auto-complete when timer finishes — triggers cheer + flying tree automatically
+  useEffect(() => {
+    Object.entries(activeTimers).forEach(([taskId, timer]) => {
+      if (
+        timer.completed &&
+        !autoCompletedRef.current.has(taskId) &&
+        focusImmersiveTask?.id !== taskId   // immersive mode handles itself
+      ) {
+        autoCompletedRef.current.add(taskId)
+        const durationMins = Math.round((selectedDuration[taskId] || 1500) / 60)
+        setTimeout(() => handleComplete(taskId, durationMins), 1200)
+      }
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTimers])
 
   async function loadData() {
     const supabase = createClient()
@@ -615,7 +631,7 @@ export default function TasksPage() {
     setLoading(false)
   }
 
-  async function handleAddTask(e: React.FormEvent) {
+  async function handleAddTask(e: React.FormEvent, stayOnAdd = false) {
     e.preventDefault()
     if (!newTitle.trim()) return
     setAddLoading(true)
@@ -635,8 +651,9 @@ export default function TasksPage() {
     }
 
     setNewTitle('')
+    setNewPriority(2)
     setAddLoading(false)
-    setTab('today')
+    if (!stayOnAdd) setTab('today')
   }
 
   async function handleComplete(taskId: string, durationMins?: number) {
@@ -678,6 +695,7 @@ export default function TasksPage() {
 
       setTasks(prev => prev.filter(t => t.id !== taskId))
       setVanishingTasks(prev => { const n = new Set(prev); n.delete(taskId); return n })
+      autoCompletedRef.current.delete(taskId)
       clearTimer(taskId)
       await loadData()
     }, 600)
@@ -728,9 +746,22 @@ No extra text. Just the JSON array.`
     setReflectSaved(true)
   }
 
-  const todayTasks   = tasks.filter(t => t.bucket === 'today')
+  const todayStr     = new Date().toISOString().split('T')[0]
+  const todayTasks   = tasks.filter(t => t.bucket === 'today' && t.created_at.startsWith(todayStr))
   const pendingTasks = tasks.filter(t => t.status === 'pending')
   const doneTasks    = tasks.filter(t => t.status === 'done')
+
+  // Weekly chart data for Progress tab
+  const last7Bars = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(); d.setDate(d.getDate() - 6 + i)
+    const ds = d.toISOString().split('T')[0]
+    return {
+      label:   d.toLocaleDateString('en', { weekday: 'short' }),
+      count:   doneTasks.filter(t => t.completed_at?.startsWith(ds)).length,
+      isToday: i === 6,
+    }
+  })
+  const chartMax = Math.max(...last7Bars.map(b => b.count), 1)
   const filteredTasks = query.trim()
     ? tasks.filter(t => t.title.toLowerCase().includes(query.toLowerCase()))
     : []
@@ -900,12 +931,15 @@ No extra text. Just the JSON array.`
                         style={{
                           background: isDone ? '#F0FDF4' :
                                       dead ? '#FEF2F2' :
-                                      running ? '#F0FDF4' : '#FAFAFA',
+                                      running ? '#F0FDF4' : '#FFFFFF',
                           border: isDone ? '1.5px solid #86EFAC' :
                                   dead ? '1.5px solid #FECACA' :
                                   running ? '1.5px solid #22C55E' :
                                   '1px solid #F1F5F9',
-                          boxShadow: running ? '0 0 0 3px rgba(34,197,94,0.1)' : 'none',
+                          boxShadow: running
+                            ? '0 0 0 3px rgba(34,197,94,0.12), 0 4px 16px rgba(0,0,0,0.06)'
+                            : '0 2px 8px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)',
+                          borderLeft: `3px solid ${p.color}`,
                         }}
                       >
                         {/* Task header */}
@@ -1038,11 +1072,11 @@ No extra text. Just the JSON array.`
                                 </div>
                               </div>
                             ) : completed ? (
-                              /* ── COMPLETED STATE ── */
+                              /* ── COMPLETED STATE — auto-saves, no button needed ── */
                               <div className="flex items-center gap-3">
                                 <motion.div
                                   className="flex-shrink-0"
-                                  animate={{ scale:[1,1.1,1] }}
+                                  animate={{ scale:[1,1.12,1], rotate:[0,4,-4,0] }}
                                   transition={{ repeat:Infinity, duration:2 }}>
                                   <GrowingTree progress={1} size={80} durationMinutes={durationMins} />
                                 </motion.div>
@@ -1051,14 +1085,18 @@ No extra text. Just the JSON array.`
                                     {t?.message?.bold || 'Tree grown!'} 🌳
                                   </p>
                                   <p className="text-xs text-slate-400 mb-2">
-                                    {t?.message?.sub || 'Add it to your forest.'}
+                                    {t?.message?.sub || 'Flying to your forest...'}
                                   </p>
-                                  <button
-                                    onClick={() => handleComplete(task.id, durationMins)}
-                                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white"
-                                    style={{ background:'linear-gradient(135deg,#16A34A,#15803D)' }}>
-                                    🌳 Add to forest
-                                  </button>
+                                  <div className="flex items-center gap-1.5">
+                                    <motion.span
+                                      animate={{ opacity:[1,0.4,1] }}
+                                      transition={{ repeat:Infinity, duration:1.2 }}
+                                      className="text-xs font-semibold"
+                                      style={{ color:'#16A34A' }}
+                                    >
+                                      🌿 Adding to forest...
+                                    </motion.span>
+                                  </div>
                                 </div>
                               </div>
                             ) : (
@@ -1239,17 +1277,32 @@ No extra text. Just the JSON array.`
                   ))}
                 </div>
               </div>
-              <button
-                type="submit"
-                disabled={addLoading || !newTitle.trim()}
-                className="w-full py-4 rounded-2xl text-sm font-bold text-white transition-all"
-                style={{
-                  background: newTitle.trim()
-                    ? 'linear-gradient(135deg,#16A34A,#15803D)' : '#E2E8F0',
-                  color: newTitle.trim() ? '#fff' : '#94A3B8',
-                }}>
-                {addLoading ? 'Planting...' : '🌱 Plant this task'}
-              </button>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  disabled={addLoading || !newTitle.trim()}
+                  onClick={e => handleAddTask(e as unknown as React.FormEvent, false)}
+                  className="flex-1 py-4 rounded-2xl text-sm font-bold text-white transition-all"
+                  style={{
+                    background: newTitle.trim() ? 'linear-gradient(135deg,#16A34A,#15803D)' : '#E2E8F0',
+                    color: newTitle.trim() ? '#fff' : '#94A3B8',
+                    boxShadow: newTitle.trim() ? '0 4px 14px rgba(22,163,74,0.25)' : 'none',
+                  }}>
+                  {addLoading ? 'Saving...' : '💾 Save task'}
+                </button>
+                <button
+                  type="button"
+                  disabled={addLoading || !newTitle.trim()}
+                  onClick={e => handleAddTask(e as unknown as React.FormEvent, true)}
+                  className="flex-1 py-4 rounded-2xl text-sm font-bold transition-all"
+                  style={{
+                    background: newTitle.trim() ? '#F0FDF4' : '#F8FAFC',
+                    color: newTitle.trim() ? '#16A34A' : '#94A3B8',
+                    border: newTitle.trim() ? '1.5px solid #86EFAC' : '1.5px solid #E2E8F0',
+                  }}>
+                  + Next task
+                </button>
+              </div>
             </form>
           </motion.div>
         )}
@@ -1289,18 +1342,60 @@ No extra text. Just the JSON array.`
                 </div>
               ))}
             </div>
-            <div className="flex gap-1 p-1 rounded-xl mb-4 w-fit" style={{ background:'#F1F5F9' }}>
-              {(['daily','weekly','monthly'] as const).map(v => (
-                <button key={v} onClick={() => setProgressView(v)}
-                  className="px-4 py-1.5 rounded-lg text-xs font-semibold capitalize"
-                  style={{
-                    background: progressView===v?'#fff':'transparent',
-                    color: progressView===v?'#7C3AED':'#94A3B8',
-                  }}>
-                  {v}
-                </button>
-              ))}
+            {/* Weekly bar chart */}
+            <div className="rounded-2xl p-5 mb-4"
+              style={{ background:'#FFFFFF', border:'1px solid #F1F5F9', boxShadow:'0 2px 8px rgba(0,0,0,0.04)' }}>
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-xs font-bold uppercase tracking-wider" style={{ color:'#94A3B8' }}>
+                  Last 7 days
+                </p>
+                <p className="text-xs font-semibold" style={{ color:'#16A34A' }}>
+                  {last7Bars.reduce((a,b) => a + b.count, 0)} tasks done
+                </p>
+              </div>
+              <div className="flex items-end gap-2" style={{ height:'88px' }}>
+                {last7Bars.map((bar, i) => (
+                  <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                    <div className="w-full flex flex-col justify-end" style={{ height:'68px' }}>
+                      {bar.count > 0 ? (
+                        <motion.div
+                          initial={{ height: 0 }}
+                          animate={{ height: `${(bar.count / chartMax) * 64}px` }}
+                          transition={{ delay: i * 0.05, duration: 0.45, ease: [0.25,0.46,0.45,0.94] }}
+                          className="w-full rounded-t-lg"
+                          style={{
+                            background: bar.isToday
+                              ? 'linear-gradient(180deg,#16A34A,#15803D)'
+                              : 'linear-gradient(180deg,#86EFAC,#BBF7D0)',
+                            minHeight: '4px',
+                          }}
+                        />
+                      ) : (
+                        <div className="w-full rounded-t-lg" style={{ height:'3px', background:'#F1F5F9' }} />
+                      )}
+                    </div>
+                    <span style={{
+                      fontSize:'9px', fontWeight: bar.isToday ? 700 : 400,
+                      color: bar.isToday ? '#16A34A' : '#94A3B8',
+                    }}>
+                      {bar.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="flex items-center gap-4 mt-3 pt-3" style={{ borderTop:'1px solid #F1F5F9' }}>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-sm" style={{ background:'linear-gradient(135deg,#16A34A,#15803D)' }}/>
+                  <span className="text-xs text-slate-400">Today</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-sm" style={{ background:'#86EFAC' }}/>
+                  <span className="text-xs text-slate-400">Previous days</span>
+                </div>
+              </div>
             </div>
+
+            {/* Overall completion card */}
             <div className="rounded-2xl p-5 text-center"
               style={{ background:'linear-gradient(135deg,#F0FDF4,#DCFCE7)', border:'1px solid #86EFAC' }}>
               <div className="flex justify-center mb-2">
@@ -1418,69 +1513,141 @@ No extra text. Just the JSON array.`
         {/* ══════════════ REFLECT TAB ══════════════ */}
         {tab === 'reflect' && (
           <motion.div initial={{ opacity:0, y:8 }} animate={{ opacity:1, y:0 }}>
-            <div className="mb-5">
-              <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Reflect</h1>
-              <p className="text-sm text-slate-400 mt-0.5">End of day check-in.</p>
-            </div>
+
             {reflectSaved ? (
-              <div className="text-center py-10 space-y-4">
-                <div className="flex justify-center">
+              <motion.div
+                initial={{ opacity:0, scale:0.95 }}
+                animate={{ opacity:1, scale:1 }}
+                className="rounded-3xl p-10 text-center"
+                style={{ background:'linear-gradient(145deg,#0F172A,#0D1F12)', border:'1px solid rgba(74,222,128,0.2)' }}
+              >
+                <div className="flex justify-center mb-4">
                   <GrowingTree progress={1} size={100} durationMinutes={60} />
                 </div>
-                <p className="text-lg font-bold text-slate-900">Reflection saved. 🌙</p>
-                <p className="text-sm text-slate-400">Rest well. Your forest grows tomorrow too.</p>
-              </div>
+                <p className="text-2xl font-black text-white mb-2">Day closed. 🌙</p>
+                <p className="text-sm" style={{ color:'rgba(255,255,255,0.5)' }}>
+                  Your reflection is saved. Rest well — your forest grows tomorrow too.
+                </p>
+              </motion.div>
             ) : (
               <div className="space-y-5">
+
+                {/* Header card */}
+                <div className="rounded-2xl p-5 relative overflow-hidden"
+                  style={{ background:'linear-gradient(145deg,#0F172A,#0D1F12)', border:'1px solid rgba(74,222,128,0.15)' }}>
+                  <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full pointer-events-none"
+                    style={{ background:'radial-gradient(circle,rgba(74,222,128,0.15) 0%,transparent 70%)' }} />
+                  <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color:'#4ADE80' }}>
+                    End of day
+                  </p>
+                  <p className="text-xl font-black text-white leading-snug">
+                    How did today actually go?
+                  </p>
+                  <p className="text-sm mt-1" style={{ color:'rgba(255,255,255,0.4)' }}>
+                    No judgment. Just a quick check-in with yourself.
+                  </p>
+                </div>
+
+                {/* Energy */}
                 <div>
-                  <p className="text-sm font-semibold text-slate-900 mb-3">Energy today</p>
+                  <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color:'#94A3B8' }}>
+                    Energy today
+                  </p>
                   <div className="flex gap-2">
-                    {['😴','😔','😐','😊','⚡'].map((e, i) => (
-                      <button key={i} onClick={() => setEnergy(i+1)}
-                        className="flex-1 py-3 rounded-xl text-xl transition-all"
+                    {[
+                      { emoji:'😴', label:'Dead' },
+                      { emoji:'😔', label:'Low'  },
+                      { emoji:'😐', label:'Meh'  },
+                      { emoji:'😊', label:'Good' },
+                      { emoji:'⚡', label:'Lit'  },
+                    ].map((e, i) => (
+                      <motion.button
+                        key={i}
+                        whileTap={{ scale: 0.93 }}
+                        onClick={() => setEnergy(i+1)}
+                        className="flex-1 flex flex-col items-center gap-1.5 py-3 rounded-2xl transition-all"
                         style={{
-                          background: energy===i+1?'#F0FDF4':'#F8FAFC',
-                          border: energy===i+1?'1.5px solid #16A34A':'1px solid #F1F5F9',
-                          transform: energy===i+1?'scale(1.08)':'scale(1)',
-                        }}>
-                        {e}
-                      </button>
+                          background: energy===i+1 ? '#F0FDF4' : '#F8FAFC',
+                          border: energy===i+1 ? '2px solid #16A34A' : '1.5px solid #E2E8F0',
+                          boxShadow: energy===i+1 ? '0 0 0 3px rgba(22,163,74,0.12)' : 'none',
+                        }}
+                      >
+                        <span className="text-2xl">{e.emoji}</span>
+                        <span className="text-xs font-semibold" style={{ color: energy===i+1 ? '#16A34A' : '#94A3B8' }}>
+                          {e.label}
+                        </span>
+                      </motion.button>
                     ))}
                   </div>
                 </div>
+
+                {/* Mood */}
                 <div>
-                  <p className="text-sm font-semibold text-slate-900 mb-3">Mood today</p>
+                  <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color:'#94A3B8' }}>
+                    Mood today
+                  </p>
                   <div className="flex gap-2">
-                    {['😢','😕','😶','🙂','🤩'].map((e, i) => (
-                      <button key={i} onClick={() => setMood(i+1)}
-                        className="flex-1 py-3 rounded-xl text-xl transition-all"
+                    {[
+                      { emoji:'😢', label:'Rough'   },
+                      { emoji:'😕', label:'Bleh'    },
+                      { emoji:'😶', label:'Ok'      },
+                      { emoji:'🙂', label:'Good'    },
+                      { emoji:'🤩', label:'Amazing' },
+                    ].map((e, i) => (
+                      <motion.button
+                        key={i}
+                        whileTap={{ scale: 0.93 }}
+                        onClick={() => setMood(i+1)}
+                        className="flex-1 flex flex-col items-center gap-1.5 py-3 rounded-2xl transition-all"
                         style={{
-                          background: mood===i+1?'#F0FDF4':'#F8FAFC',
-                          border: mood===i+1?'1.5px solid #16A34A':'1px solid #F1F5F9',
-                          transform: mood===i+1?'scale(1.08)':'scale(1)',
-                        }}>
-                        {e}
-                      </button>
+                          background: mood===i+1 ? '#F0FDF4' : '#F8FAFC',
+                          border: mood===i+1 ? '2px solid #16A34A' : '1.5px solid #E2E8F0',
+                          boxShadow: mood===i+1 ? '0 0 0 3px rgba(22,163,74,0.12)' : 'none',
+                        }}
+                      >
+                        <span className="text-2xl">{e.emoji}</span>
+                        <span className="text-xs font-semibold" style={{ color: mood===i+1 ? '#16A34A' : '#94A3B8' }}>
+                          {e.label}
+                        </span>
+                      </motion.button>
                     ))}
                   </div>
                 </div>
+
+                {/* Notes */}
                 <div>
-                  <p className="text-sm font-semibold text-slate-900 mb-2">Notes (optional)</p>
+                  <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color:'#94A3B8' }}>
+                    Anything on your mind?
+                  </p>
                   <textarea
                     value={reflectNote}
                     onChange={e => setReflectNote(e.target.value)}
-                    placeholder="How did today go?"
-                    rows={3}
-                    className="w-full px-4 py-3 rounded-2xl text-sm resize-none outline-none"
-                    style={{ background:'#F8FAFC', border:'1.5px solid #E2E8F0', fontFamily:'inherit', color:'#1E293B' }}
+                    placeholder="wins, struggles, random thoughts — no filter needed"
+                    rows={4}
+                    className="w-full px-4 py-3.5 rounded-2xl text-sm resize-none outline-none transition-all"
+                    style={{
+                      background:'#F8FAFC', border:'1.5px solid #E2E8F0',
+                      fontFamily:'inherit', color:'#1E293B', lineHeight:'1.6',
+                    }}
+                    onFocus={e => e.target.style.borderColor='#16A34A'}
+                    onBlur={e => e.target.style.borderColor='#E2E8F0'}
                   />
                 </div>
-                <button
+
+                {/* CTA */}
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
                   onClick={handleReflectSave}
-                  className="w-full py-4 rounded-2xl text-sm font-bold text-white"
-                  style={{ background:'linear-gradient(135deg,#16A34A,#15803D)' }}>
-                  Save reflection 🌙
-                </button>
+                  className="w-full py-4 rounded-2xl text-sm font-black text-white"
+                  style={{
+                    background:'linear-gradient(135deg,#16A34A,#15803D)',
+                    boxShadow:'0 4px 20px rgba(22,163,74,0.30)',
+                  }}>
+                  Close the day 🌙
+                </motion.button>
+                <p className="text-center text-xs" style={{ color:'#94A3B8' }}>
+                  Takes 30 seconds. Worth every one.
+                </p>
               </div>
             )}
           </motion.div>

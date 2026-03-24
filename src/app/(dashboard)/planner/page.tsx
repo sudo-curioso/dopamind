@@ -127,7 +127,7 @@ function ActiveMode({
   }
 
   function markDone() {
-    setCompleted(prev => new Set([...prev, currentIdx]))
+    setCompleted(prev => { const s = new Set(prev); s.add(currentIdx); return s })
     setTimerActive(false)
     setTimeLeft(0)
     setNote('')
